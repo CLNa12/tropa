@@ -74,6 +74,14 @@ export const PositionInput = z.object({
   y: z.number(),
 });
 
+// Раскладка целиком: канвас сохраняет её одной записью, а не по ноде за раз.
+export const PositionsInput = z.object({
+  positions: z
+    .array(z.object({ id: z.string(), x: z.number(), y: z.number() }))
+    .min(1, 'список координат пуст')
+    .max(400, 'за один раз можно сохранить не больше 400 координат'),
+});
+
 export const StatusInput = z
   .object({
     status: z.enum(STATUSES),

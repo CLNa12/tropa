@@ -54,6 +54,17 @@ export const setStatus = (id: string, taskId: string, status: Status, reason?: s
 export const addNote = (id: string, taskId: string, text: string) =>
   request('POST', `/roadmaps/${id}/tasks/${taskId}/notes`, { text, author: 'human' });
 
+/** Координаты ноды — отдельная ручка, не обычная правка задачи (PRD, раздел 7). */
+export const setPosition = (id: string, taskId: string, x: number, y: number) =>
+  request('POST', `/roadmaps/${id}/tasks/${taskId}/position`, { x, y });
+export const setPositions = (id: string, positions: { id: string; x: number; y: number }[]) =>
+  request('POST', `/roadmaps/${id}/positions`, { positions });
+
+export const linkTasks = (id: string, taskId: string, dependsOn: string) =>
+  request('POST', `/roadmaps/${id}/tasks/${taskId}/links`, { dependsOn });
+export const unlinkTasks = (id: string, taskId: string, dependsOn: string) =>
+  request('DELETE', `/roadmaps/${id}/tasks/${taskId}/links/${dependsOn}`);
+
 export const deleteNote = (id: string, taskId: string, noteId: string) =>
   request('DELETE', `/roadmaps/${id}/tasks/${taskId}/notes/${noteId}?confirm=true`);
 

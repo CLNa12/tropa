@@ -35,6 +35,9 @@ export interface TaskBrief {
   dependsOn: string[];
   subtasks: Progress;
   version: number;
+  /** Координаты ноды на канвасе. Их ставит только человек мышкой, агент к ним не допущен. */
+  x: number;
+  y: number;
 }
 
 export interface RoadmapView {

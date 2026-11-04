@@ -1,19 +1,22 @@
 {
   "name": "tropa-web",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "private": true,
   "type": "module",
-  "description": "Tropa — интерфейс. Этап 3: список карт, дерево задач, панель задачи, живое обновление.",
+  "description": "Tropa — интерфейс. Этапы 3–4: список, канвас, панель задачи, живое обновление.",
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
     "preview": "vite preview"
   },
   "dependencies": {
+    "dagre": "^0.8.5",
     "react": "^18.3.1",
-    "react-dom": "^18.3.1"
+    "react-dom": "^18.3.1",
+    "reactflow": "^11.11.4"
   },
   "devDependencies": {
+    "@types/dagre": "^0.7.52",
     "@types/react": "^18.3.12",
     "@types/react-dom": "^18.3.1",
     "@vitejs/plugin-react": "^4.3.4",

@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import * as api from './api';
 import { ApiError } from './api';
+import { Canvas } from './components/Canvas';
 import { Sidebar, type StageFilter } from './components/Sidebar';
 import { TaskPanel } from './components/TaskPanel';
 import { TaskTree } from './components/TaskTree';
@@ -39,14 +40,22 @@ export default function App() {
   const [activeStageId, setActiveStageId] = useState<string | null>(null);
   const [live, setLive] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [mode, setMode] = useState<'list' | 'canvas'>(
+    () => (localStorage.getItem('tropa.mode') === 'canvas' ? 'canvas' : 'list'),
+  );
+  const [flyToken, setFlyToken] = useState(0);
+  const [allDetails, setAllDetails] = useState(false);
 
   const stageRefs = useRef(new Map<string, HTMLDivElement>());
   const viewRef = useRef<RoadmapView | null>(null);
-  const wanted = useRef<{ expanded: Set<string>; selected: string | null }>({
+  const wanted = useRef<{ expanded: Set<string>; selected: string | null; all: boolean }>({
     expanded: new Set(),
     selected: null,
+    all: false,
   });
-  wanted.current = { expanded, selected: selectedId };
+  wanted.current = { expanded, selected: selectedId, all: allDetails };
+
+  useEffect(() => localStorage.setItem('tropa.mode', mode), [mode]);
 
   const complain = useCallback((err: unknown) => {
     setError(err instanceof Error ? err.message : String(err));
@@ -75,7 +84,9 @@ export default function App() {
         }
       }
 
-      const needed = new Set(wanted.current.expanded);
+      // На близком зуме канвасу нужны описания — тогда тянем подробности по всем задачам,
+      // в остальное время только по открытым (правило компактности, PRD раздел 7).
+      const needed = new Set(wanted.current.all ? next.tasks.map((t) => t.id) : wanted.current.expanded);
       if (wanted.current.selected) needed.add(wanted.current.selected);
       const alive = [...needed].filter((taskId) => next.tasks.some((t) => t.id === taskId));
       const loaded = await Promise.all(alive.map((taskId) => api.getTask(id, taskId).catch(() => null)));
@@ -189,8 +200,29 @@ export default function App() {
 
   const pickStage = useCallback((stageId: string) => {
     setActiveStageId(stageId);
+    setFlyToken((n) => n + 1); // канвас подлетит к группе нод этого этапа
     stageRefs.current.get(stageId)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }, []);
+
+  /** Канвасу понадобились описания — догружаем их и держим до ухода с близкого зума. */
+  const needDescriptions = useCallback(
+    (need: boolean) => {
+      setAllDetails(need);
+      if (!need || !activeId || !viewRef.current) return;
+      const missing = viewRef.current.tasks.filter((t) => !details[t.id]).map((t) => t.id);
+      if (missing.length === 0) return;
+      void Promise.all(missing.map((taskId) => api.getTask(activeId, taskId).catch(() => null)))
+        .then((loaded) => {
+          setDetails((prev) => {
+            const next = { ...prev };
+            for (const task of loaded) if (task) next[task.id] = task;
+            return next;
+          });
+        })
+        .catch(complain);
+    },
+    [activeId, details, complain],
+  );
 
   const selected = selectedId ? details[selectedId] : undefined;
   const stages = view ? view.stages : [];
@@ -247,6 +279,14 @@ export default function App() {
                 {totals.done}/{totals.total} задач · {stages.length}{' '}
                 {stages.length === 1 ? 'этап' : 'этапов'}
               </span>
+              <div className="switch" role="group" aria-label="вид карты">
+                <button className={mode === 'list' ? 'on' : ''} onClick={() => setMode('list')}>
+                  Список
+                </button>
+                <button className={mode === 'canvas' ? 'on' : ''} onClick={() => setMode('canvas')}>
+                  Канвас
+                </button>
+              </div>
               <button
                 className="btn"
                 onClick={() => {
@@ -262,7 +302,25 @@ export default function App() {
           )}
         </div>
 
-        {view ? (
+        {view && mode === 'canvas' ? (
+          <Canvas
+            stages={stages}
+            tasks={view.tasks}
+            details={details}
+            flash={flash}
+            selectedId={selectedId}
+            activeStageId={activeStageId}
+            flyToken={flyToken}
+            onSelect={selectTask}
+            onMove={(taskId, x, y) => activeId && void act(() => api.setPosition(activeId, taskId, x, y))}
+            onLayout={(positions) => activeId && void act(() => api.setPositions(activeId, positions))}
+            onLink={(taskId, dependsOn) => activeId && void act(() => api.linkTasks(activeId, taskId, dependsOn))}
+            onUnlink={(taskId, dependsOn) =>
+              activeId && void act(() => api.unlinkTasks(activeId, taskId, dependsOn))
+            }
+            onNeedDescriptions={needDescriptions}
+          />
+        ) : view ? (
           <TaskTree
             stages={stages}
             tasks={view.tasks}

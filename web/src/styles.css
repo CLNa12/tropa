@@ -650,3 +650,193 @@ button {
   z-index: 10;
   max-width: 70vw;
 }
+
+/* ------------------------------------------------------------------ канвас */
+
+.switch {
+  display: flex;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.switch button {
+  padding: 4px 11px;
+  color: var(--muted);
+  background: var(--panel-2);
+}
+
+.switch button + button {
+  border-left: 1px solid var(--line);
+}
+
+.switch button.on {
+  background: var(--accent-soft);
+  color: var(--text);
+}
+
+.canvas {
+  flex: 1;
+  min-height: 0;
+  position: relative;
+}
+
+.react-flow__renderer,
+.react-flow__pane {
+  background: var(--bg);
+}
+
+.node {
+  width: 216px;
+  height: 92px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 8px 10px;
+  border: 1.5px solid var(--line);
+  border-left-width: 4px;
+  border-radius: 9px;
+  background: var(--panel);
+  overflow: hidden;
+}
+
+.node.picked {
+  box-shadow: 0 0 0 2px var(--accent);
+}
+
+.node-head {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 17px;
+}
+
+.node-title {
+  font-size: 12.5px;
+  font-weight: 600;
+  line-height: 1.25;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.node-detail {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.node-desc {
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.35;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.node-desc.empty {
+  color: var(--muted-2);
+  font-style: italic;
+}
+
+.node-foot {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.node-bar {
+  flex: 1;
+  height: 4px;
+  border-radius: 3px;
+  background: var(--line);
+  overflow: hidden;
+}
+
+.node-bar i {
+  display: block;
+  height: 100%;
+  transition: width 0.25s;
+}
+
+.node-count {
+  color: var(--muted-2);
+  font-size: 10.5px;
+  white-space: nowrap;
+}
+
+.node-blocked {
+  color: var(--blocked);
+  font-weight: 600;
+}
+
+.node .port {
+  width: 9px;
+  height: 9px;
+  background: var(--panel-2);
+  border: 1.5px solid var(--muted-2);
+}
+
+.node .port:hover {
+  border-color: var(--accent);
+  background: var(--accent);
+}
+
+/* Далёкий зум — только цветной прямоугольник; близкий — с описанием (PRD, раздел 8). */
+.zoom-far .node-head .dot,
+.zoom-far .node-foot,
+.zoom-far .node-detail,
+.zoom-mid .node-detail {
+  display: none;
+}
+
+.zoom-far .node {
+  justify-content: center;
+  background: var(--panel-2);
+}
+
+.zoom-far .node-title {
+  font-size: 15px;
+  -webkit-line-clamp: 3;
+}
+
+.zoom-mid .node-head {
+  flex: 1;
+  align-items: flex-start;
+}
+
+.react-flow__edge-path {
+  stroke: var(--muted-2);
+}
+
+.edge-ready .react-flow__edge-path {
+  stroke: var(--done);
+  opacity: 0.55;
+}
+
+.edge-waiting .react-flow__edge-path {
+  stroke: var(--accent);
+}
+
+.react-flow__controls button {
+  background: var(--panel-2);
+  border-bottom: 1px solid var(--line);
+  fill: var(--muted);
+}
+
+.react-flow__controls button:hover {
+  background: var(--panel);
+}
+
+.react-flow__minimap {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+
+.canvas-panel {
+  margin: 10px;
+}

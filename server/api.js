@@ -108,6 +108,10 @@ export function createApi() {
     wrap((req) => repo.setPosition(req.params.id, req.params.taskId, req.body)),
   );
   api.post(
+    '/roadmaps/:id/positions',
+    wrap((req) => repo.setPositions(req.params.id, req.body)),
+  );
+  api.post(
     '/roadmaps/:id/tasks/:taskId/notes',
     wrap((req) => repo.addNote(req.params.id, req.params.taskId, req.body)),
   );

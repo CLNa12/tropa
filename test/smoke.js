@@ -77,6 +77,29 @@ try {
   check('задачи созданы, версия начинается с 1', probe.version === 1 && core.version === 1);
   check('координаты канваса агент не задаёт', probe.x === 0 && probe.y === 0);
 
+  // Канвас: координаты ставятся отдельными ручками, обычная правка их не трогает.
+  const moved = await call('POST', `/roadmaps/${roadmap.id}/tasks/${probe.id}/position`, { x: 120, y: 48 });
+  check('координату одной ноды можно сохранить', moved.x === 120 && moved.y === 48);
+  const renamed = await call('PATCH', `/roadmaps/${roadmap.id}/tasks/${probe.id}`, {
+    title: 'Каркас сервера',
+    version: probe.version,
+  });
+  check('правка задачи координаты не сдвигает', renamed.x === 120 && renamed.y === 48);
+  const batch = await call('POST', `/roadmaps/${roadmap.id}/positions`, {
+    positions: [
+      { id: probe.id, x: 10, y: 20 },
+      { id: core.id, x: 310, y: 20 },
+    ],
+  });
+  check('раскладка сохраняется одной записью', batch.positions.length === 2 && batch.positions[0].x === 10);
+  const badLayout = await call(
+    'POST',
+    `/roadmaps/${roadmap.id}/positions`,
+    { positions: [{ id: 'tk_нет', x: 1, y: 1 }] },
+    404,
+  );
+  check('раскладка с несуществующей задачей отклоняется', String(badLayout.error).includes('не найдена'));
+
   console.log('\n3. Чтение обратно');
   const view = await call('GET', `/roadmaps/${roadmap.id}`);
   check('карта читается обратно целиком', view.stages.length === 2 && view.tasks.length === 2);

@@ -6,6 +6,7 @@ import {
   LinkInput,
   NoteInput,
   PositionInput,
+  PositionsInput,
   RoadmapInput,
   RoadmapPatch,
   StageInput,
@@ -289,6 +290,21 @@ export function setPosition(roadmapId, taskId, body) {
   task.y = input.y;
   writeRoadmap(touch(file));
   return { id: task.id, x: task.x, y: task.y };
+}
+
+export function setPositions(roadmapId, body) {
+  const input = parse(PositionsInput, body);
+  const file = readRoadmap(roadmapId);
+  const moved = [];
+  for (const point of input.positions) {
+    const task = findTask(file, point.id);
+    if (!task) fail(404, `задача ${point.id} не найдена`);
+    task.x = point.x;
+    task.y = point.y;
+    moved.push({ id: task.id, x: task.x, y: task.y });
+  }
+  writeRoadmap(touch(file));
+  return { positions: moved };
 }
 
 export function addNote(roadmapId, taskId, body) {
