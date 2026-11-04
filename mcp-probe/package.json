@@ -1,0 +1,15 @@
+{
+  "name": "tropa-mcp-probe",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Tropa stage 0: minimal MCP server over stdio with a single ping tool.",
+  "scripts": {
+    "start": "node server.js",
+    "check": "node check.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.21.1",
+    "zod": "^3.25.76"
+  }
+}

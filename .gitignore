@@ -1,0 +1,26 @@
+# зависимости
+node_modules/
+
+# сборка интерфейса
+web/dist/
+web/tsconfig.tsbuildinfo
+
+# временные файлы атомарной записи
+*.tmp
+
+# личное: карты, ключи, локальные настройки
+.tropa/
+*.env
+.env
+.env.*
+*.key
+*.pem
+secrets.json
+.claude/settings.local.json
+
+# мусор ОС и редакторов
+Thumbs.db
+desktop.ini
+.DS_Store
+.vscode/
+.idea/

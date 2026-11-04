@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "tropa": {
+      "type": "stdio",
+      "command": "node",
+      "args": [
+        "C:\\Users\\182\\Downloads\\урок 1 вайбкодинг\\tropa\\mcp\\server.js"
+      ],
+      "env": {}
+    }
+  }
+}

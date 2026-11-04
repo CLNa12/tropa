@@ -1,0 +1,23 @@
+{
+  "name": "tropa",
+  "version": "0.3.0",
+  "private": true,
+  "type": "module",
+  "description": "Tropa — локальная дорожная карта проекта. Этапы 0–3: ядро, API, MCP и интерфейс списком.",
+  "scripts": {
+    "start": "node server/index.js",
+    "dev": "node --watch server/index.js",
+    "smoke": "node test/smoke.js",
+    "mcp": "node mcp/server.js",
+    "mcp:check": "node test/mcp.js",
+    "mcp:check:external": "node test/mcp-external.js",
+    "web:dev": "npm --prefix web run dev",
+    "web:build": "npm --prefix web run build",
+    "web:install": "npm --prefix web install"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.21.1",
+    "express": "^5.1.0",
+    "zod": "^3.25.76"
+  }
+}
