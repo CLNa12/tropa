@@ -187,3 +187,7 @@ npm.cmd run mcp:check:external
 ## Дальше по плану
 
 Этап 4 — канвас: React Flow, ноды, стрелки, зум, миникарта, автораскладка. Этап 5 — доводка.
+
+## Репозиторий
+
+https://github.com/CLNa12/tropa
