@@ -22,8 +22,8 @@ import 'reactflow/dist/style.css';
 import type { Stage, TaskBrief, TaskFull } from '../types';
 import { TaskNode, type TaskNodeData } from './TaskNode';
 
-export const NODE_WIDTH = 216;
-export const NODE_HEIGHT = 92;
+export const NODE_WIDTH = 288;
+export const NODE_HEIGHT = 128;
 
 interface Props {
   stages: Stage[];
@@ -48,7 +48,7 @@ const nodeTypes = { task: TaskNode };
 /** Автораскладка Dagre: слева направо по зависимостям, задачи одного этапа держатся вместе. */
 export function layout(stages: Stage[], tasks: TaskBrief[]) {
   const graph = new dagre.graphlib.Graph({ compound: true });
-  graph.setGraph({ rankdir: 'LR', ranksep: 90, nodesep: 26, marginx: 40, marginy: 40 });
+  graph.setGraph({ rankdir: 'LR', ranksep: 120, nodesep: 34, marginx: 48, marginy: 48 });
   graph.setDefaultEdgeLabel(() => ({}));
 
   const order = new Map(stages.map((s, i) => [s.id, i]));
@@ -65,17 +65,46 @@ export function layout(stages: Stage[], tasks: TaskBrief[]) {
 
   dagre.layout(graph);
 
-  return tasks.map((task) => {
+  const placed = tasks.map((task) => {
     const node = graph.node(task.id) as { x: number; y: number } | undefined;
     // Если Dagre почему-то не дал координату — ставим задачу в колонку своего этапа.
-    const fallbackX = (order.get(task.stageId) ?? 0) * (NODE_WIDTH + 90);
-    const fallbackY = tasks.filter((t) => t.stageId === task.stageId).indexOf(task) * (NODE_HEIGHT + 26);
+    const fallbackX = (order.get(task.stageId) ?? 0) * (NODE_WIDTH + 120);
+    const fallbackY = tasks.filter((t) => t.stageId === task.stageId).indexOf(task) * (NODE_HEIGHT + 34);
     return {
       id: task.id,
       x: Math.round(node ? node.x - NODE_WIDTH / 2 : fallbackX),
       y: Math.round(node ? node.y - NODE_HEIGHT / 2 : fallbackY),
     };
   });
+
+  return wrapLongChain(placed);
+}
+
+/**
+ * Если задачи идут одной длинной цепочкой, Dagre растягивает карту в строку на тысячи
+ * пикселей — целиком она влезает только в нечитаемом масштабе. Такую строку переносим
+ * на несколько рядов, порядок задач сохраняется (слева направо, потом следующий ряд).
+ */
+function wrapLongChain(placed: { id: string; x: number; y: number }[]) {
+  if (placed.length < 6) return placed;
+  const width = Math.max(...placed.map((p) => p.x)) - Math.min(...placed.map((p) => p.x)) + NODE_WIDTH;
+  const height = Math.max(...placed.map((p) => p.y)) - Math.min(...placed.map((p) => p.y)) + NODE_HEIGHT;
+  const wide = width > height * 3;
+  const tall = height > width * 3;
+  if (!wide && !tall) return placed;
+
+  const stepX = NODE_WIDTH + 120;
+  const stepY = NODE_HEIGHT + 70;
+  const columns = Math.max(2, Math.ceil(Math.sqrt(placed.length)));
+  // Строку читаем слева направо, столбик — сверху вниз: порядок задач не меняется.
+  const order = [...placed].sort((a, b) => (wide ? a.x - b.x || a.y - b.y : a.y - b.y || a.x - b.x));
+  const byId = new Map(
+    order.map((p, i) => [
+      p.id,
+      { x: 48 + (i % columns) * stepX, y: 48 + Math.floor(i / columns) * stepY },
+    ]),
+  );
+  return placed.map((p) => ({ id: p.id, ...byId.get(p.id)! }));
 }
 
 /** Все ноды в одной точке — значит раскладки ещё не было (агент координаты не ставит). */
@@ -86,8 +115,8 @@ function needsFirstLayout(tasks: TaskBrief[]) {
 }
 
 function zoomBucket(zoom: number) {
-  if (zoom < 0.6) return 'far';
-  if (zoom >= 1.15) return 'near';
+  if (zoom < 0.5) return 'far';
+  if (zoom >= 0.95) return 'near';
   return 'mid';
 }
 
@@ -213,13 +242,14 @@ function CanvasInner(props: Props) {
         minZoom={0.2}
         maxZoom={2}
         fitView
-        fitViewOptions={{ padding: 0.25, maxZoom: 1 }}
+        // Маленькую карту не ужимаем ниже читаемого; большая по-прежнему влезает целиком.
+        fitViewOptions={{ padding: 0.2, maxZoom: 1.1, minZoom: tasks.length <= 40 ? 0.7 : 0.1 }}
         proOptions={{ hideAttribution: true }}
         deleteKeyCode={['Backspace', 'Delete']}
         nodesConnectable
       >
         <Background variant={BackgroundVariant.Dots} gap={22} size={1} color="var(--line)" />
-        <Controls showInteractive={false} />
+        <Controls showInteractive={false} fitViewOptions={{ padding: 0.2, maxZoom: 1.1 }} />
         <MiniMap
           pannable
           zoomable

@@ -687,15 +687,15 @@ button {
 }
 
 .node {
-  width: 216px;
-  height: 92px;
+  width: 288px;
+  height: 128px;
   display: flex;
   flex-direction: column;
-  gap: 5px;
-  padding: 8px 10px;
+  gap: 7px;
+  padding: 11px 13px;
   border: 1.5px solid var(--line);
-  border-left-width: 4px;
-  border-radius: 9px;
+  border-left-width: 5px;
+  border-radius: 11px;
   background: var(--panel);
   overflow: hidden;
 }
@@ -707,14 +707,14 @@ button {
 .node-head {
   display: flex;
   align-items: center;
-  gap: 7px;
-  min-height: 17px;
+  gap: 8px;
+  min-height: 20px;
 }
 
 .node-title {
-  font-size: 12.5px;
+  font-size: 15.5px;
   font-weight: 600;
-  line-height: 1.25;
+  line-height: 1.3;
   overflow: hidden;
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -729,8 +729,8 @@ button {
 
 .node-desc {
   color: var(--muted);
-  font-size: 11px;
-  line-height: 1.35;
+  font-size: 13px;
+  line-height: 1.4;
   overflow: hidden;
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -750,7 +750,7 @@ button {
 
 .node-bar {
   flex: 1;
-  height: 4px;
+  height: 5px;
   border-radius: 3px;
   background: var(--line);
   overflow: hidden;
@@ -764,7 +764,7 @@ button {
 
 .node-count {
   color: var(--muted-2);
-  font-size: 10.5px;
+  font-size: 12.5px;
   white-space: nowrap;
 }
 
@@ -774,8 +774,8 @@ button {
 }
 
 .node .port {
-  width: 9px;
-  height: 9px;
+  width: 11px;
+  height: 11px;
   background: var(--panel-2);
   border: 1.5px solid var(--muted-2);
 }
@@ -799,7 +799,7 @@ button {
 }
 
 .zoom-far .node-title {
-  font-size: 15px;
+  font-size: 21px;
   -webkit-line-clamp: 3;
 }
 
