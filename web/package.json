@@ -1,6 +1,6 @@
 {
   "name": "tropa-web",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "private": true,
   "type": "module",
   "description": "Tropa — интерфейс. Этапы 3–4: список, канвас, панель задачи, живое обновление.",

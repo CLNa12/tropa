@@ -209,6 +209,7 @@ function CanvasInner(props: Props) {
         onEdgesDelete={(removed) => {
           for (const edge of removed) props.onUnlink(edge.target, edge.source);
         }}
+        onlyRenderVisibleElements
         minZoom={0.2}
         maxZoom={2}
         fitView

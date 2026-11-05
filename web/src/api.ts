@@ -74,3 +74,20 @@ export const toggleSubtask = (id: string, taskId: string, subtaskId: string, don
   request('PATCH', `/roadmaps/${id}/tasks/${taskId}/subtasks/${subtaskId}`, { done });
 export const deleteSubtask = (id: string, taskId: string, subtaskId: string) =>
   request('DELETE', `/roadmaps/${id}/tasks/${taskId}/subtasks/${subtaskId}?confirm=true`);
+
+export interface TemplateBrief {
+  id: string;
+  title: string;
+  about: string;
+  goal: string;
+  stages: number;
+  tasks: number;
+}
+
+export const listTemplates = () => request<{ templates: TemplateBrief[] }>('GET', '/templates');
+export const createFromTemplate = (templateId: string, title: string) =>
+  request<{ id: string }>('POST', '/roadmaps/from-template', { templateId, title });
+export const exportMarkdown = (id: string) =>
+  request<{ markdown: string; title: string }>('GET', `/roadmaps/${id}/export`);
+export const taskPrompt = (id: string, taskId: string) =>
+  request<{ prompt: string }>('GET', `/roadmaps/${id}/tasks/${taskId}/prompt`);

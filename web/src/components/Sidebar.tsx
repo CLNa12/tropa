@@ -1,4 +1,5 @@
 // Левая зона: поиск, список карт, этапы активной карты со счётчиками и колечками (PRD, раздел 8).
+import type { RefObject } from 'react';
 import type { RoadmapSummary, Stage } from '../types';
 import { ProgressRing } from './ProgressRing';
 
@@ -13,6 +14,7 @@ interface Props {
   filter: StageFilter;
   live: boolean;
   storage: string;
+  searchRef?: RefObject<HTMLInputElement>;
   onSearch: (value: string) => void;
   onFilter: (value: StageFilter) => void;
   onPickRoadmap: (id: string) => void;
@@ -45,9 +47,10 @@ export function Sidebar(props: Props) {
     <aside className="sidebar">
       <div className="search">
         <input
+          ref={props.searchRef}
           value={props.search}
           onChange={(e) => props.onSearch(e.target.value)}
-          placeholder="Поиск по картам и этапам"
+          placeholder="Поиск по картам и этапам  ·  /"
         />
       </div>
 

@@ -175,7 +175,37 @@ try {
   check('копии складываются перед каждой записью', history.backups.length > 5, `${history.backups.length} шт.`);
   check('папка истории на диске есть', readdirSync(join(sandbox, 'history')).includes(roadmap.id));
 
-  console.log('\n9. Список карт');
+  console.log('\n9. Доводка: шаблоны, экспорт, промпт');
+  const { templates } = await call('GET', '/templates');
+  check('шаблоны отдаются списком', templates.length >= 3 && templates.some((t) => t.id === 'course'));
+  const fromTpl = await call('POST', '/roadmaps/from-template', {
+    templateId: 'course',
+    title: 'Курс из шаблона',
+  });
+  check('карта из шаблона создана', fromTpl.tasks === 6, JSON.stringify(fromTpl));
+  const tplView = await call('GET', `/roadmaps/${fromTpl.id}`);
+  check('этапы шаблона на месте', tplView.stages.length === 3);
+  check('задачи шаблона связаны по очереди', tplView.tasks[1].dependsOn[0] === tplView.tasks[0].id);
+  check('координаты у шаблона нулевые — раскладывает канвас', tplView.tasks.every((t) => t.x === 0));
+  const badTpl = await call('POST', '/roadmaps/from-template', { templateId: 'нет-такого' }, 404);
+  check('неизвестный шаблон отклоняется', String(badTpl.error).includes('не найден'));
+
+  const exported = await call('GET', `/roadmaps/${fromTpl.id}/export`);
+  check('экспорт начинается с заголовка карты', exported.markdown.startsWith('# Курс из шаблона'));
+  check('в экспорте есть этапы и чеклисты', exported.markdown.includes('## Занятие 1') && exported.markdown.includes('- [ ] '));
+  check('в экспорте виден статус задачи', exported.markdown.includes('статус: не начата'));
+
+  const prompt = await call('GET', `/roadmaps/${fromTpl.id}/tasks/${tplView.tasks[1].id}/prompt`);
+  check('промпт называет задачу и карту', prompt.prompt.includes('Курс из шаблона') && prompt.prompt.includes('Занятие 1: домашка'));
+  check('промпт просит отметиться в Tropa', prompt.prompt.includes('set_status'));
+  check(
+    'промпт предупреждает о незакрытой зависимости',
+    prompt.prompt.includes('Сначала нужно закрыть'),
+    prompt.prompt,
+  );
+  await call('DELETE', `/roadmaps/${fromTpl.id}?confirm=true`);
+
+  console.log('\n10. Список карт');
   const all = await call('GET', '/roadmaps');
   check('карта видна в списке с прогрессом', all.roadmaps[0].progress.total === 4, JSON.stringify(all.roadmaps[0]));
 } catch (err) {

@@ -3,6 +3,7 @@ import express from 'express';
 import * as repo from './repo.js';
 import { HOME_DIR, historyFor } from './storage.js';
 import { onChange, withSource } from './events.js';
+import { templateList } from './templates.js';
 
 /** Ошибки из repo приходят с полем status; всё остальное — 500. */
 function wrap(handler) {
@@ -106,6 +107,19 @@ export function createApi() {
   api.post(
     '/roadmaps/:id/tasks/:taskId/position',
     wrap((req) => repo.setPosition(req.params.id, req.params.taskId, req.body)),
+  );
+  api.get('/templates', (_req, res) => res.json({ templates: templateList() }));
+  api.post(
+    '/roadmaps/from-template',
+    wrap((req) => repo.createFromTemplate(req.body)),
+  );
+  api.get(
+    '/roadmaps/:id/export',
+    wrap((req) => repo.exportMarkdown(req.params.id)),
+  );
+  api.get(
+    '/roadmaps/:id/tasks/:taskId/prompt',
+    wrap((req) => repo.taskPrompt(req.params.id, req.params.taskId)),
   );
   api.post(
     '/roadmaps/:id/positions',

@@ -74,6 +74,13 @@ export const PositionInput = z.object({
   y: z.number(),
 });
 
+export const TemplateInput = z.object({
+  templateId: z.string().min(1),
+  title: z.string().trim().min(1).max(200).optional(),
+  goal: z.string().max(2000).optional(),
+  context: z.string().max(20000).optional(),
+});
+
 // Раскладка целиком: канвас сохраняет её одной записью, а не по ноде за раз.
 export const PositionsInput = z.object({
   positions: z

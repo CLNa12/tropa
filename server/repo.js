@@ -13,12 +13,15 @@ import {
   StagePatch,
   StatusInput,
   SubtaskInput,
+  TemplateInput,
   TaskInput,
   TaskPatch,
   emptyRoadmapFile,
   newId,
   nowIso,
 } from './schema.js';
+import { roadmapToMarkdown, taskToPrompt } from './markdown.js';
+import { findTemplate, templateToBulk } from './templates.js';
 import {
   deleteRoadmap as removeFile,
   listRoadmapIds,
@@ -290,6 +293,45 @@ export function setPosition(roadmapId, taskId, body) {
   task.y = input.y;
   writeRoadmap(touch(file));
   return { id: task.id, x: task.x, y: task.y };
+}
+
+/** Карта целиком в markdown — для выгрузки в заметки или другому агенту. */
+export function exportMarkdown(roadmapId) {
+  const file = readRoadmap(roadmapId);
+  return { markdown: roadmapToMarkdown(file), title: file.roadmap.title };
+}
+
+/** Готовый текст задачи для Claude — кнопка в панели задачи (PRD, раздел 8). */
+export function taskPrompt(roadmapId, taskId) {
+  const file = readRoadmap(roadmapId);
+  const task = findTask(file, taskId);
+  if (!task) fail(404, `задача ${taskId} не найдена`);
+  return { prompt: taskToPrompt(file, task) };
+}
+
+/** Карта из шаблона: создаём, наполняем через ту же bulkCreate и связываем по порядку. */
+export function createFromTemplate(body) {
+  const input = parse(TemplateInput, body);
+  const template = findTemplate(input.templateId);
+  if (!template) fail(404, `шаблон ${input.templateId} не найден`);
+
+  const roadmap = createRoadmap({
+    title: input.title ?? template.title,
+    goal: input.goal ?? template.goal,
+    context: input.context ?? '',
+  });
+
+  if (template.stages.length === 0) return { ...roadmap, templateId: template.id, tasks: 0 };
+
+  const created = bulkCreate(roadmap.id, templateToBulk(template));
+  if (template.chain) {
+    const file = readRoadmap(roadmap.id);
+    for (let i = 1; i < created.tasks.length; i += 1) {
+      findTask(file, created.tasks[i]).dependsOn = [created.tasks[i - 1]];
+    }
+    writeRoadmap(touch(file));
+  }
+  return { ...roadmap, templateId: template.id, tasks: created.tasks.length };
 }
 
 export function setPositions(roadmapId, body) {

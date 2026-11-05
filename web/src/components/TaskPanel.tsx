@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react';
 import type { Status, TaskBrief, TaskFull } from '../types';
 import { STATUS_LABELS } from '../types';
+import { Markdown } from './Markdown';
 
 interface Props {
   task: TaskFull;
@@ -15,6 +16,7 @@ interface Props {
   onToggleSubtask: (subtaskId: string, done: boolean) => Promise<void>;
   onDeleteSubtask: (subtaskId: string) => Promise<void>;
   onJump: (taskId: string) => void;
+  onCopyPrompt: () => void;
 }
 
 const STATUSES: Status[] = ['todo', 'in_progress', 'blocked', 'done'];
@@ -191,6 +193,7 @@ export function TaskPanel(props: Props) {
           value={task.description}
           placeholder="описания нет — нажмите, чтобы добавить"
           multiline
+          render={(text) => <Markdown text={text} />}
           onSave={(description) => void props.onPatch({ description })}
         />
 
@@ -281,6 +284,10 @@ export function TaskPanel(props: Props) {
             }}
           />
         </div>
+
+        <button className="btn wide" onClick={props.onCopyPrompt} title="горячая клавиша: P">
+          Скопировать промпт для Claude
+        </button>
 
         <h3>Служебное</h3>
         <div style={{ color: 'var(--muted-2)', fontSize: 11.5, lineHeight: 1.8 }}>
