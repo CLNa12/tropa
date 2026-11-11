@@ -5,9 +5,7 @@
 //   embedded — сервера нет, поднимаем тот же Express внутри своего процесса на свободном порту.
 // Второй режим нужен, чтобы агент работал без просьбы «сначала запустите сервер».
 import { createServer } from '../server/index.js';
-
-const HOST = process.env.TROPA_HOST?.trim() || '127.0.0.1';
-const PORT = Number(process.env.TROPA_PORT ?? 4317);
+import { HOST, PORT } from '../server/config.js';
 
 /** Ошибка от API: текст, код и подробности проверки — в удобном для агента виде. */
 export class ApiError extends Error {

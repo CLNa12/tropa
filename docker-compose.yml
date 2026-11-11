@@ -1,0 +1,22 @@
+# Запуск Tropa в Docker: docker compose up -d --build
+# Остановить: docker compose down   (карты в томе остаются)
+services:
+  tropa:
+    build: .
+    image: tropa:local
+    container_name: tropa
+    restart: unless-stopped
+    # Порт нарочно привязан к 127.0.0.1: в Tropa нет авторизации, поэтому наружу
+    # его выставлять нельзя. Кому нужен доступ по сети — делайте это осознанно,
+    # через обратный прокси с паролем.
+    ports:
+      - '127.0.0.1:4317:4317'
+    environment:
+      HOST: 0.0.0.0
+      PORT: '4317'
+      TROPA_HOME: /data
+    volumes:
+      - tropa-data:/data
+
+volumes:
+  tropa-data:

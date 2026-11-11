@@ -1,16 +1,14 @@
-// Точка входа сервера Tropa. Слушает только локальный адрес, авторизации нет,
-// в сеть не выходит (PRD, раздел 9).
+// Точка входа сервера Tropa. По умолчанию слушает только локальный адрес и авторизации не имеет
+// (PRD, раздел 9). Адрес и порт можно переопределить переменными окружения — см. config.js.
 import express from 'express';
 import { existsSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { createApi } from './api.js';
+import { HOST, IS_PUBLIC, PORT } from './config.js';
 import { HOME_DIR, ensureDirs } from './storage.js';
 
 const WEB_DIST = join(dirname(fileURLToPath(import.meta.url)), '..', 'web', 'dist');
-
-const HOST = process.env.TROPA_HOST?.trim() || '127.0.0.1';
-const PORT = Number(process.env.TROPA_PORT ?? 4317);
 
 export function createServer() {
   ensureDirs();
@@ -32,5 +30,12 @@ const isDirectRun =
 if (isDirectRun) {
   createServer().listen(PORT, HOST, () => {
     console.log(`[tropa] API на http://${HOST}:${PORT}/api  ·  карты в ${HOME_DIR}`);
+    if (IS_PUBLIC) {
+      console.warn(
+        `[tropa] ВНИМАНИЕ: сервер слушает ${HOST}, то есть доступен не только с этого компьютера. ` +
+          'Авторизации в Tropa нет — кто откроет адрес, тот увидит и правит все карты. ' +
+          'Это нормально внутри контейнера, но наружу такой порт не выставляйте.',
+      );
+    }
   });
 }

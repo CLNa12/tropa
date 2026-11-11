@@ -1,0 +1,21 @@
+# В образ не уезжает ничего лишнего и ничего личного.
+node_modules
+web/node_modules
+mcp-probe/node_modules
+web/dist
+web/tsconfig.tsbuildinfo
+.git
+.claude
+.mcp.json
+test
+mcp-probe
+*.md
+!README.md
+.env
+.env.*
+*.key
+*.pem
+.tropa
+Thumbs.db
+desktop.ini
+.DS_Store
