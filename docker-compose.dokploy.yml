@@ -24,12 +24,23 @@ services:
       - traefik.http.routers.tropa-web.entrypoints=web
       - traefik.http.routers.tropa-web.middlewares=redirect-to-https@file
 
-      # сам сайт: сертификат Let's Encrypt и пароль на вход
+      # Чтение — всем, без пароля: GET, HEAD и OPTIONS.
+      # Приоритет выше, поэтому такие запросы разбираются этим маршрутом.
+      - traefik.http.routers.tropa-read.rule=(Host(`tropamap.ru`) || Host(`www.tropamap.ru`)) && (Method(`GET`) || Method(`HEAD`) || Method(`OPTIONS`))
+      - traefik.http.routers.tropa-read.entrypoints=websecure
+      - traefik.http.routers.tropa-read.tls=true
+      - traefik.http.routers.tropa-read.tls.certresolver=letsencrypt
+      - traefik.http.routers.tropa-read.priority=100
+      - traefik.http.routers.tropa-read.service=tropa
+
+      # Всё остальное — правки и удаления — только по логину и паролю.
       - traefik.http.routers.tropa.rule=Host(`tropamap.ru`) || Host(`www.tropamap.ru`)
       - traefik.http.routers.tropa.entrypoints=websecure
       - traefik.http.routers.tropa.tls=true
       - traefik.http.routers.tropa.tls.certresolver=letsencrypt
+      - traefik.http.routers.tropa.priority=50
       - traefik.http.routers.tropa.middlewares=tropa-auth@file
+      - traefik.http.routers.tropa.service=tropa
       - traefik.http.services.tropa.loadbalancer.server.port=4317
 
 volumes:
