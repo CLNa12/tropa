@@ -24,6 +24,19 @@ services:
       - traefik.http.routers.tropa-web.entrypoints=web
       - traefik.http.routers.tropa-web.middlewares=redirect-to-https@file
 
+      # Канвас, открывшись, сам сохраняет раскладку — запрос уходит без участия
+      # человека. Гостю на него отвечаем «запрещено», а не «нужен пароль»: иначе
+      # браузер показывает окно входа просто при открытии карты.
+      # Условие «нет заголовка Authorization» — то есть посетитель ещё не вошёл;
+      # у вошедшего запрос идёт дальше, по обычному правилу с паролем, и сохраняется.
+      - traefik.http.routers.tropa-layout-guest.rule=(Host(`tropamap.ru`) || Host(`www.tropamap.ru`)) && Method(`POST`) && PathRegexp(`^/api/roadmaps/[^/]+/positions$`) && !HeaderRegexp(`Authorization`, `.+`)
+      - traefik.http.routers.tropa-layout-guest.entrypoints=websecure
+      - traefik.http.routers.tropa-layout-guest.tls=true
+      - traefik.http.routers.tropa-layout-guest.tls.certresolver=letsencrypt
+      - traefik.http.routers.tropa-layout-guest.priority=200
+      - traefik.http.routers.tropa-layout-guest.middlewares=deny-403@file
+      - traefik.http.routers.tropa-layout-guest.service=tropa
+
       # Чтение — всем, без пароля: GET, HEAD и OPTIONS.
       # Приоритет выше, поэтому такие запросы разбираются этим маршрутом.
       - traefik.http.routers.tropa-read.rule=(Host(`tropamap.ru`) || Host(`www.tropamap.ru`)) && (Method(`GET`) || Method(`HEAD`) || Method(`OPTIONS`))
