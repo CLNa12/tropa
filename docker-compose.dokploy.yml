@@ -1,6 +1,6 @@
 # Запуск через Dokploy. Отличия от обычного docker-compose.yml:
-# порт наружу не публикуется (всех пускает Traefik), том с картами — уже существующий
-# на сервере, а адрес, сертификат и пароль заданы метками Traefik.
+# порты наружу не публикуются (всех пускает Traefik), том с картами — уже существующий
+# на сервере, а адреса, сертификаты и защита заданы метками Traefik.
 services:
   tropa:
     build: .
@@ -13,6 +13,7 @@ services:
     volumes:
       - tropa-data:/data
     networks:
+      - internal
       - dokploy-network
     labels:
       - traefik.enable=true
@@ -31,13 +32,54 @@ services:
       - traefik.http.routers.tropa.middlewares=tropa-auth@file
       - traefik.http.services.tropa.loadbalancer.server.port=4317
 
+  # Удалённый MCP: тот же образ, но запускается другой командой.
+  # В карту ходит не в файлы, а по внутреннему адресу соседнего контейнера.
+  mcp:
+    build: .
+    image: tropa:dokploy
+    restart: unless-stopped
+    command: ['node', 'mcp/http.js']
+    environment:
+      TROPA_API_URL: http://tropa:4317/api
+      TROPA_MCP_HOST: 0.0.0.0
+      TROPA_MCP_PORT: '4318'
+      # Токен задаётся переменной окружения на сервере, в репозитории его нет.
+      TROPA_MCP_TOKEN: ${TROPA_MCP_TOKEN:?нужен TROPA_MCP_TOKEN - секретный токен MCP}
+    depends_on:
+      - tropa
+    networks:
+      - internal
+      - dokploy-network
+    healthcheck:
+      test: ['CMD', 'node', '-e', "fetch('http://127.0.0.1:4318/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 4s
+      retries: 3
+      start_period: 5s
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=dokploy-network
+
+      - traefik.http.routers.tropa-mcp-web.rule=Host(`mcp.tropamap.ru`)
+      - traefik.http.routers.tropa-mcp-web.entrypoints=web
+      - traefik.http.routers.tropa-mcp-web.middlewares=redirect-to-https@file
+
+      # Пароль здесь не нужен: вход закрыт секретным токеном в заголовке.
+      - traefik.http.routers.tropa-mcp.rule=Host(`mcp.tropamap.ru`)
+      - traefik.http.routers.tropa-mcp.entrypoints=websecure
+      - traefik.http.routers.tropa-mcp.tls=true
+      - traefik.http.routers.tropa-mcp.tls.certresolver=letsencrypt
+      - traefik.http.services.tropa-mcp.loadbalancer.server.port=4318
+
 # Том уже существует на сервере и создан не этим файлом — поэтому external.
 volumes:
   tropa-data:
     external: true
     name: tropa_tropa-data
 
-# Общая сеть Dokploy, через неё Traefik достаёт до контейнера.
 networks:
+  # Своя сеть для разговора Tropa и MCP между собой.
+  internal:
+  # Общая сеть Dokploy, через неё Traefik достаёт до контейнеров.
   dokploy-network:
     external: true

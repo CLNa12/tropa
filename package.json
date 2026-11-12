@@ -13,7 +13,8 @@
     "mcp:check:external": "node test/mcp-external.js",
     "web:dev": "npm --prefix web run dev",
     "web:build": "npm --prefix web run build",
-    "web:install": "npm --prefix web install"
+    "web:install": "npm --prefix web install",
+    "mcp:http": "node mcp/http.js"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.21.1",

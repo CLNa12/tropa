@@ -38,6 +38,15 @@ let resolving = null;
 /** Один раз находит (или поднимает) API и дальше возвращает тот же адрес. */
 export function ready() {
   resolving ??= (async () => {
+    // Явно заданный адрес API — так MCP в контейнере находит соседний контейнер с Tropa.
+    const configured = process.env.TROPA_API_URL?.trim().replace(/\/+$/, '');
+    if (configured) {
+      if (!(await healthy(configured))) {
+        throw new Error(`API по адресу ${configured} не отвечает — проверьте TROPA_API_URL`);
+      }
+      return { base: configured, mode: 'configured', port: null };
+    }
+
     const external = `http://${HOST}:${PORT}/api`;
     if (await healthy(external)) return { base: external, mode: 'external', port: PORT };
 
