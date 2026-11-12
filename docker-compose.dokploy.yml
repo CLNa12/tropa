@@ -1,0 +1,43 @@
+# Запуск через Dokploy. Отличия от обычного docker-compose.yml:
+# порт наружу не публикуется (всех пускает Traefik), том с картами — уже существующий
+# на сервере, а адрес, сертификат и пароль заданы метками Traefik.
+services:
+  tropa:
+    build: .
+    image: tropa:dokploy
+    restart: unless-stopped
+    environment:
+      HOST: 0.0.0.0
+      PORT: '4317'
+      TROPA_HOME: /data
+    volumes:
+      - tropa-data:/data
+    networks:
+      - dokploy-network
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=dokploy-network
+
+      # http → https
+      - traefik.http.routers.tropa-web.rule=Host(`tropamap.ru`) || Host(`www.tropamap.ru`)
+      - traefik.http.routers.tropa-web.entrypoints=web
+      - traefik.http.routers.tropa-web.middlewares=redirect-to-https@file
+
+      # сам сайт: сертификат Let's Encrypt и пароль на вход
+      - traefik.http.routers.tropa.rule=Host(`tropamap.ru`) || Host(`www.tropamap.ru`)
+      - traefik.http.routers.tropa.entrypoints=websecure
+      - traefik.http.routers.tropa.tls=true
+      - traefik.http.routers.tropa.tls.certresolver=letsencrypt
+      - traefik.http.routers.tropa.middlewares=tropa-auth@file
+      - traefik.http.services.tropa.loadbalancer.server.port=4317
+
+# Том уже существует на сервере и создан не этим файлом — поэтому external.
+volumes:
+  tropa-data:
+    external: true
+    name: tropa_tropa-data
+
+# Общая сеть Dokploy, через неё Traefik достаёт до контейнера.
+networks:
+  dokploy-network:
+    external: true
